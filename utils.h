@@ -1,19 +1,9 @@
 #ifndef __UTILS_H__
 #define __UTILS_H__
-
-#include "linked_list.h"
-
-
-// TYPEDEFS ====================================================================
-
-// STRUCTS =====================================================================
-
-// HEADERS =====================================================================
+#include <vector>
+#include "node.hpp"
 
 
-void readInput(list_t *list, int *vertex_count, FILE *arq);
-
-
-int **allocMatrix(int vertex_count);
+void readInput(std::vector<node_t> &list, int &vertex_count, FILE *arq);
 
 #endif

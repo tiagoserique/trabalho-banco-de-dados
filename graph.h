@@ -1,6 +1,7 @@
 #ifndef __GRAPH_H__
 #define __GRAPH_H__
-
+#include <vector>
+#include "node.hpp"
 
 // TYPEDEFS ====================================================================
 
@@ -15,19 +16,8 @@ struct graph_t {
 
 // HEADERS =====================================================================
 
-// Creates a new graph with the given number of vertices.
-// Returns a pointer to the new graph.
-graph_t *createGraph(int vertex_count);
+bool checkConflict(std::vector<node_t> list, int first, int second);
 
-// Adds an edge to the graph.
-// Returns 0 if the edge was added successfully, 1 otherwise.
-int addEdge(graph_t *graph, int vertex_1, int vertex_2);
-
-// Prints the graph.
-void printGraph(graph_t *graph);
-
-// Frees the memory used by the graph.
-void destroyGraph(graph_t *graph);
-
+bool hasCycle(std::vector<std::vector<int>> graph);
 
 #endif

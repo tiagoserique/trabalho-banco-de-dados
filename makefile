@@ -1,6 +1,6 @@
-
+CC = g++
 FLAGS = -Wall  
-objects = main.o utils.o graph.o linked_list.o
+objects = main.o utils.o graph.o
 
 
 all: compila
@@ -11,19 +11,15 @@ compila: $(objects)
 
 
 main.o: main.*
-	g++ -c $(FLAGS) main.c
+	g++ -c $(FLAGS) main.cpp
 
 
 utils.o: utils.*
-	g++ -c $(FLAGS) utils.c
+	g++ -c $(FLAGS) utils.cpp
 
 
 graph.o: graph.*
-	g++ -c $(FLAGS) graph.c
-
-
-linked_list.o: linked_list.*
-	g++ -c $(FLAGS) linked_list.c
+	g++ -c $(FLAGS) graph.cpp
 
 
 clean:

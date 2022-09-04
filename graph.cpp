@@ -1,74 +1,46 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include <iostream>
+#include <fstream>
+#include <string>
+
 #include "utils.h"
 #include "graph.h"
-#include "linked_list.h"
+
+using std::vector;
 
 
-graph_t *createGraph(int vertex_count){
-    graph_t *graph = (graph_t *) malloc(sizeof(graph_t));
-    
-    graph->vertex_count = vertex_count;
-
-    // graph->adj_list = (list_t **) malloc(sizeof(list_t *) * vertex_count);
-    
-    // for ( int i = 0; i < vertex_count; i++ ){
-    //     graph->adj_list[i] = createList();
-    // }
-
-    graph->matrix = allocMatrix(vertex_count);
-
-    return graph;
-}
-
-
-
-int addEdge(graph_t *graph, int vertex_1, int vertex_2){
-    // check if graph is null
-    if ( !graph ) return -1;
-    
-    // check if vertex_1 and vertex_2 are valid
-    if ( vertex_1 - 1 < 0 || vertex_1 - 1 >= graph->vertex_count ||
-         vertex_2 - 1 < 0 || vertex_2 - 1 >= graph->vertex_count ){
-        return -1;
+bool checkConflict(vector<node_t> list, int first, int second){
+    if(list[first].op == 'R'){
+        if(list[first].attr == list[second].attr && list[second].op == 'W')
+            return true;
+    } 
+    else if(list[first].op == 'W'){
+        if(list[first].attr == list[second].attr && (list[second].op == 'W' || list[second].op == 'R'))
+            return true;
     }
     
-    // check if there is an edge between vertex_1 and vertex_2
-    if ( graph->matrix[vertex_1 - 1][vertex_2 - 1] ) return -1;
-    
-    // add edge between vertex_1 and vertex_2
-    graph->matrix[vertex_1 - 1][vertex_2 - 1] = 1;
-    
-    return 0;
+    return false;
 }
 
-
-void printGraph(graph_t *graph){
-    printf("\n");
-
-    for ( int i = 0; i < graph->vertex_count; i++ ){
-        printf("%d: ", i);
+static void dfs(vector<vector<int>> &graph, vector<int> &visited, int v, bool &cycle){
+    visited[v] = 1;
     
-        for ( int j = 0; j < graph->vertex_count; j++ ){
-            printf("%d ", graph->matrix[i][j]);
-        }
-    
-        printf("\n");
+    for (auto i: graph[v]){
+        if ( visited[i] == 0 )
+            dfs(graph, visited, i, cycle);
+        else if (visited[i] == 1)
+            cycle = true;
     }
 
-    printf("\n");
+    visited[v] = 2;
 }
 
-
-void destroyGraph(graph_t *graph){
-    // for ( int i = 0; i < graph->vertex_count; i++ ){
-    //     destroyList(graph->adj_list[i]);
-    // }
+bool hasCycle(vector<vector<int>> graph){
+    vector<int> visited(graph.size()-1, 0); // inicializa em 0 == nao explorado
+    bool cycle;
     
-    // free(graph->adj_list);
-
-    free(graph->matrix);
-    free(graph);
+    for(int i = 1; i < graph.size(); ++i){
+        if(visited[i] == 0) dfs(graph, visited, i, cycle); 
+    }
+    
+    return cycle;
 }
-
-
