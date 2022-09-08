@@ -1,5 +1,5 @@
 CC = g++
-FLAGS = -Wall  
+FLAGS = -Wall -g
 objects = main.o utils.o graph.o
 
 

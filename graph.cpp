@@ -21,6 +21,15 @@ bool checkConflict(vector<node_t> list, int first, int second){
     return false;
 }
 
+bool checkView(vector<node_t> list, int first, int second){
+    if(list[first].op == 'R'){
+        if(list[first].attr == list[second].attr && list[second].op == 'W')
+            return true;
+    } 
+    
+    return false;
+}
+
 static void dfs(vector<vector<int>> &graph, vector<int> &visited, int v, bool &cycle){
     visited[v] = 1;
     
@@ -35,7 +44,7 @@ static void dfs(vector<vector<int>> &graph, vector<int> &visited, int v, bool &c
 }
 
 bool hasCycle(vector<vector<int>> graph){
-    vector<int> visited(graph.size()-1, 0); // inicializa em 0 == nao explorado
+    vector<int> visited(graph.size(), 0); // inicializa em 0 == nao explorado
     bool cycle;
     
     for(int i = 1; i < graph.size(); ++i){
