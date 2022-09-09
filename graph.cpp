@@ -22,8 +22,8 @@ bool checkConflict(vector<node_t> list, int first, int second){
 }
 
 bool checkView(vector<node_t> list, int first, int second){
-    if(list[first].op == 'R'){
-        if(list[first].attr == list[second].attr && list[second].op == 'W')
+    if(list[first].op == 'W'){
+        if(list[first].attr == list[second].attr && list[second].op == 'R')
             return true;
     } 
     
@@ -47,7 +47,7 @@ bool hasCycle(vector<vector<int>> graph){
     vector<int> visited(graph.size(), 0); // inicializa em 0 == nao explorado
     bool cycle;
     
-    for(int i = 1; i < graph.size(); ++i){
+    for(int i = 1; i < (int) graph.size(); ++i){
         if(visited[i] == 0) dfs(graph, visited, i, cycle); 
     }
     

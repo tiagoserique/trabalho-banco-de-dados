@@ -14,7 +14,6 @@ void readInput(vector<vector<node_t>> &list,  vector<int> &vertex_count, FILE *a
     set<int> activeTransactions;
     vector<node_t> currentSchedule;
     int currentVertexCount = 0;
-    int maxId = 0;
     
     fscanf(arq, "%d %d %c %c", &time, &id, &operation, &attribute);
     while ( !feof(arq) ){
@@ -23,7 +22,7 @@ void readInput(vector<vector<node_t>> &list,  vector<int> &vertex_count, FILE *a
             activeTransactions.erase(id);
         } else {
             activeTransactions.insert(id);
-            if(activeTransactions.size() > currentVertexCount)
+            if((int)activeTransactions.size() > currentVertexCount)
                 currentVertexCount = activeTransactions.size();
         }
 
@@ -40,13 +39,4 @@ void readInput(vector<vector<node_t>> &list,  vector<int> &vertex_count, FILE *a
 
         fscanf(arq, "%d %d %c %c", &time, &id, &operation, &attribute);
     }
-}
-
-bool haveIntersection(set<char> a, set<char> b){
-    for(int i = 0; i < a.size(); ++i){
-        for(int j = 0; j < b.size(); ++j){
-            if(std::next(a.begin(), i) == std::next(b.begin(), j)) return true;
-        }
-    }
-    return false;
 }

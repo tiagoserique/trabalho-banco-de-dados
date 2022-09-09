@@ -26,14 +26,14 @@ int main(){
 
     readInput(list, vertex_count, stdin);
 
-    for(int t = 0; t < list.size(); ++t){
+    for(int t = 0; t < (int) list.size(); ++t){
         cout << t+1 << ' ';
 
         // cout << "nr of transactions: " << vertex_count[t] << endl;
         // cout << "prev count: " << previousCount << endl;
         vector<vector<int>> graph(vertex_count[t]+1);
-        for (int i = 0; i < list[t].size(); ++i){
-            for (int j = i+1; j < list[t].size(); ++j){
+        for (int i = 0; i < (int) list[t].size(); ++i){
+            for (int j = i+1; j < (int) list[t].size(); ++j){
                 if(list[t][i].id != list[t][j].id){
                     if(checkConflict(list[t], i, j)){
                         graph[list[t][i].id-previousCount].push_back(list[t][j].id-previousCount);
@@ -55,13 +55,13 @@ int main(){
 
         set<char> attributes;
         // store all unique attributes
-        for(int i = 0; i < list[t].size(); ++i){
+        for(int i = 0; i < (int) list[t].size(); ++i){
             attributes.insert(list[t][i].attr);
         }
 
         vector<vector<int>> attributesGraph(vertex_count[t]+1);
-        for (int i = 0; i < list[t].size(); ++i){
-            for (int j = i+1; j < list[t].size(); ++j){
+        for (int i = 0; i < (int) list[t].size(); ++i){
+            for (int j = i+1; j < (int) list[t].size(); ++j){
                 if(list[t][i].id != list[t][j].id){
                     if(checkView(list[t], i, j)){
                         attributesGraph[list[t][i].id-previousCount].push_back(list[t][j].id-previousCount);
@@ -75,7 +75,7 @@ int main(){
         map<char, int> lastWrittenId;
         map<char, int> lastWrittenTime;
         for(int i = 1; i <= vertex_count[t]; i++){
-            for(int j = 0; j < list[t].size(); j++){
+            for(int j = 0; j < (int) list[t].size(); j++){
                 if(list[t][j].op == 'W'){
                     if(lastWrittenTime[list[t][j].attr] < list[t][j].time){
                         lastWrittenId[list[t][j].attr]   = list[t][j].id;
@@ -91,7 +91,7 @@ int main(){
             // int relativeIndex = i - previousCount + 1;
             blocks[i].id = i;
             
-            for(int j = 0; j < list[t].size(); j++) if(i+previousCount == list[t][j].id){
+            for(int j = 0; j < (int) list[t].size(); j++) if(i+previousCount == list[t][j].id){
                 if(list[t][j].op == 'W'){
                     blocks[i].writtenAttributes.insert(list[t][j].attr);
                 } else if(list[t][j].op == 'R'){
@@ -120,7 +120,7 @@ int main(){
 
             int time = 1;
             for(int i = 1; i <= vertex_count[t]; i++){
-                for(int j = 0; j < blocks[i].transac.size(); j++){
+                for(int j = 0; j < (int) blocks[i].transac.size(); j++){
                     node_t currTransac = blocks[i].transac[j];
                     currTransac.time = time++;
                     // cout << "t: " << currTransac.time << endl;
@@ -145,19 +145,9 @@ int main(){
 
             // checar se é mantido r(x) antes de w(x) nessa visão
             // vector<vector<int>> currentViewGraph(blocks.size());
-            for (int i = 1; i < blocks.size(); ++i){
-                for (int j = i+1; j < blocks.size(); ++j){
-                    // se houver leitura antes de escrita nessa visão e houver escrita antes de leitura no original
-                    // a visão é inválida
-                    // for(auto k = blocks[i].writtenAttributes.begin(); k != blocks[i].writtenAttributes.end(); k++){
-                    //     cout << *k << ' ';
-                    // }
-                    // cout << endl;
-                    // for(auto k = blocks[j].readAttributes.begin(); k != blocks[j].readAttributes.end(); k++){
-                    //     cout << *k << ' ';
-                    // }
-                    // cout << endl;
-                    
+            for (int i = 1; i < (int)blocks.size(); ++i){
+                for (int j = i+1; j < (int)blocks.size(); ++j){
+
                     set<char> intersect;
                     set_intersection(blocks[i].writtenAttributes.begin(), blocks[i].writtenAttributes.end(), 
                                      blocks[j].readAttributes.begin(), blocks[j].readAttributes.end(), 
