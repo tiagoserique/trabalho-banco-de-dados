@@ -22,11 +22,14 @@ bool checkConflict(vector<node_t> list, int first, int second){
 }
 
 bool checkView(vector<node_t> list, int first, int second){
+    if(list[first].op == 'R'){
+        if(list[first].attr == list[second].attr && list[second].op == 'W')
+            return true;
+    }
     if(list[first].op == 'W'){
         if(list[first].attr == list[second].attr && list[second].op == 'R')
             return true;
     } 
-    
     return false;
 }
 

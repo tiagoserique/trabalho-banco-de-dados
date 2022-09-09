@@ -28,9 +28,7 @@ int main(){
 
     for(int t = 0; t < (int) list.size(); ++t){
         cout << t+1 << ' ';
-
-        // cout << "nr of transactions: " << vertex_count[t] << endl;
-        // cout << "prev count: " << previousCount << endl;
+        
         vector<vector<int>> graph(vertex_count[t]+1);
         for (int i = 0; i < (int) list[t].size(); ++i){
             for (int j = i+1; j < (int) list[t].size(); ++j){
@@ -59,121 +57,76 @@ int main(){
             attributes.insert(list[t][i].attr);
         }
 
-        vector<vector<int>> attributesGraph(vertex_count[t]+1);
+        // build graph to check wether there is a write before a read on the same attribute
+        vector<vector<int>> viewGraph(vertex_count[t]+1);
+        map<char, int> lastWritten;
         for (int i = 0; i < (int) list[t].size(); ++i){
             for (int j = i+1; j < (int) list[t].size(); ++j){
                 if(list[t][i].id != list[t][j].id){
                     if(checkView(list[t], i, j)){
-                        attributesGraph[list[t][i].id-previousCount].push_back(list[t][j].id-previousCount);
-                        // cout << "Tem aresta de " << list[t][i].id << " para " << list[t][j].id << endl;
+                        viewGraph[list[t][i].id-previousCount].push_back(list[t][j].id-previousCount);
                     }
                 }
             }
-        }
-
-        // armazena o id da ultima escrita do atributo
-        map<char, int> lastWrittenId;
-        map<char, int> lastWrittenTime;
-        for(int i = 1; i <= vertex_count[t]; i++){
-            for(int j = 0; j < (int) list[t].size(); j++){
-                if(list[t][j].op == 'W'){
-                    if(lastWrittenTime[list[t][j].attr] < list[t][j].time){
-                        lastWrittenId[list[t][j].attr]   = list[t][j].id;
-                        lastWrittenTime[list[t][j].attr] = list[t][j].time;
-                    }
-                }    
+            if(list[t][i].op == 'W'){
+                lastWritten[list[t][i].attr] = list[t][i].id-previousCount;
             }
         }
 
-        vector<block_t> blocks(vertex_count[t]+1);
-        int time = 0;
-        for(int i = 1; i <= vertex_count[t]; i++){
-            // int relativeIndex = i - previousCount + 1;
-            blocks[i].id = i;
-            
-            for(int j = 0; j < (int) list[t].size(); j++) if(i+previousCount == list[t][j].id){
+        vector<block_t> blocks(vertex_count[t]);
+        for(int i = 0; i < vertex_count[t]; i++){
+            blocks[i].id = i+1;
+            for(int j = 0; j < (int) list[t].size(); j++) if(blocks[i].id + previousCount == list[t][j].id){
                 if(list[t][j].op == 'W'){
                     blocks[i].writtenAttributes.insert(list[t][j].attr);
                 } else if(list[t][j].op == 'R'){
                     blocks[i].readAttributes.insert(list[t][j].attr);
                 }
-
-                node_t newTransaction = list[t][j];
-                newTransaction.time = time;
-                blocks[i].transac.push_back(newTransaction);
-                time++;
+                blocks[i].transac.push_back(list[t][j]);
             }
         }
+        // for(int i = 0; i < blocks.size(); ++i){
+        //     cout << "Bloco de id: " <<blocks[i].id << " com "<< blocks[i].transac.size() << " operacoes" << endl;
+        // }
 
-        
+
         bool view;
-        bool view2;
-        int b = 0;
         do {
             view = true;
-            view2 = true;
+            // checar ordem de escrita antes de leitura
+            for(int i = 0; i < vertex_count[t]; i++){
+                for(int j = i+1; j < vertex_count[t]; j++){
+                    int u = blocks[i].id;
+                    int v = blocks[j].id;
+                    if(find(viewGraph[v].begin(), viewGraph[v].end(), u) != viewGraph[v].end()){
+                        view = false;
+                        // cout << "Existe a escrita do bloco " << v << " para " << u << endl;
+                    }
+                }
+            }
 
-            // checar se últimas escritas dos atributos são as últimas nessa visão
-            map<char, int> currentLastWrittenId;
-            map<char, int> currentLastWrittenTime;
-            // cout << "b size " << blocks.size() << endl; 
-
-            int time = 1;
-            for(int i = 1; i <= vertex_count[t]; i++){
+            // ultima escrita é mantida?
+            map<char, int> viewLastWritten;
+            for(int i = 0; i < vertex_count[t]; i++){
                 for(int j = 0; j < (int) blocks[i].transac.size(); j++){
-                    node_t currTransac = blocks[i].transac[j];
-                    currTransac.time = time++;
-                    // cout << "t: " << currTransac.time << endl;
-                    if(currTransac.op == 'W'){
-                        if(currTransac.time > currentLastWrittenTime[currTransac.attr]){
-                            currentLastWrittenId[currTransac.attr]   = currTransac.id;
-                            currentLastWrittenTime[currTransac.attr] = currTransac.time;
-                            // cout << "t: " << currentLastWrittenTime[currTransac.attr] << " id: " <<  currentLastWrittenId[currTransac.attr] << endl;
-                        }
+                    if(blocks[i].transac[j].op == 'W'){
+                        viewLastWritten[blocks[i].transac[j].attr] = blocks[i].id;
                     }
                 }
             }
-
             for(auto i = attributes.begin(); i != attributes.end(); i++){
-                //  cout << *i << ' ' << lastWrittenId[*i] << ' ' << currentLastWrittenId[*i] << endl;
-                if(lastWrittenId[*i] != currentLastWrittenId[*i])
+                // cout << lastWritten[*i] << ' ' << viewLastWritten[*i] << endl;  
+                if(lastWritten[*i] != viewLastWritten[*i]){
                     view = false;
-            }
-
-            // if(view) cout << "As últimas escritas são mantidas" << endl;
-            // else cout << "Não são mantidas as últimas escritas" << endl;
-
-            // checar se é mantido r(x) antes de w(x) nessa visão
-            // vector<vector<int>> currentViewGraph(blocks.size());
-            for (int i = 1; i < (int)blocks.size(); ++i){
-                for (int j = i+1; j < (int)blocks.size(); ++j){
-
-                    set<char> intersect;
-                    set_intersection(blocks[i].writtenAttributes.begin(), blocks[i].writtenAttributes.end(), 
-                                     blocks[j].readAttributes.begin(), blocks[j].readAttributes.end(), 
-                                     std::inserter(intersect, intersect.begin()));
-
-                    if(!intersect.empty() &&
-                        find(attributesGraph[j].begin(), attributesGraph[j].end(), i) != attributesGraph[j].end()){
-                        view2 = false;
-                    }
                 }
             }
-            // if(view2) cout << "A ordem é mantida" << endl;
-            // else cout << "Não é mantida a ordem" << endl;
-            // for (int i = 1; i < blocks.size(); ++i){
-            //     cout << blocks[i].id << " ";
-            // }
-            // cout << endl;
 
-            ++b;
-        } while ((!view || !view2) && next_permutation(blocks.begin()+1, blocks.end(), 
+        } while (!view && next_permutation(blocks.begin(), blocks.end(), 
                         [](const auto & lhs, const auto & rhs) 
                             { return lhs.id < rhs.id; }));
 
-        if(view && view2) cout << "SV" << endl;
+        if(view) cout << "SV" << endl;
         else cout << "NV" << endl;
-        // cout << "permutations: " << ++b << "\n" << endl;
         
         previousCount += vertex_count[t];
     }
