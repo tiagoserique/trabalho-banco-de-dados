@@ -23,15 +23,11 @@ void readInput(vector<vector<node_t>> &list,  vector<int> &vertex_count, FILE *a
             activeTransactions.erase(id);
         } else {
             activeTransactions.insert(id);
+            if(activeTransactions.size() > currentVertexCount)
+                currentVertexCount = activeTransactions.size();
         }
 
         currentSchedule.push_back({.time = time, .id = id, .op = operation, .attr = attribute});
-
-        
-        if ( id > maxId ){ 
-            maxId = id;
-            currentVertexCount++;
-        }
 
         // after pushing the operation, we check wether the 
         // schedule has finished or not
