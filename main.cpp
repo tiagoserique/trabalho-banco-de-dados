@@ -1,3 +1,6 @@
+// Vinicius Tikara Venturi Date - GRR20190367
+// Tiago Serique Valadares - GRR20195138
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -9,8 +12,8 @@
 
 #include "utils.h"
 #include "graph.h"
-#include "node.hpp"
-#include "block.hpp"
+#include "node.h"
+#include "block.h"
 
 using std::vector;
 using std::set;
@@ -27,29 +30,22 @@ int main(){
     readInput(list, vertex_count, stdin);
 
     for(int t = 0; t < (int) list.size(); ++t){
+        // part of the output print
         cout << t+1 << ' ';
-        
-        vector<vector<int>> graph(vertex_count[t]+1);
-        for (int i = 0; i < (int) list[t].size(); ++i){
-            for (int j = i+1; j < (int) list[t].size(); ++j){
-                if(list[t][i].id != list[t][j].id){
-                    if(checkConflict(list[t], i, j)){
-                        graph[list[t][i].id-previousCount].push_back(list[t][j].id-previousCount);
-                    }
-                }
-            }
-        }
-
         for (int i = 1; i <= vertex_count[t]; ++i){
             cout << i + previousCount;
             if(i <= vertex_count[t]-1) cout << ',';
         }
         cout << ' ';
-        
+
+        /*================ Serialidade por Conflito ================*/
+
+        vector<vector<int>> graph = buildGraph(list[t], vertex_count[t]+1, previousCount, checkConflict);
+
         if (hasCycle(graph)) cout << "NS ";
         else cout << "SS ";
 
-        /*================ Equivalência por visão ================*/
+        /*================= Equivalência por visão =================*/
 
         set<char> attributes;
         // store all unique attributes
@@ -58,68 +54,33 @@ int main(){
         }
 
         // build graph to check wether there is a write before a read on the same attribute
-        vector<vector<int>> viewGraph(vertex_count[t]+1);
+        vector<vector<int>> viewGraph = buildGraph(list[t], vertex_count[t]+1, previousCount, checkView);
+
+        // stores which transaction has wrote last in the attribute
         map<char, int> lastWritten;
         for (int i = 0; i < (int) list[t].size(); ++i){
-            for (int j = i+1; j < (int) list[t].size(); ++j){
-                if(list[t][i].id != list[t][j].id){
-                    if(checkView(list[t], i, j)){
-                        viewGraph[list[t][i].id-previousCount].push_back(list[t][j].id-previousCount);
-                    }
-                }
-            }
             if(list[t][i].op == 'W'){
                 lastWritten[list[t][i].attr] = list[t][i].id-previousCount;
             }
         }
 
+        // build sequential transaction blocks for permutation later
         vector<block_t> blocks(vertex_count[t]);
         for(int i = 0; i < vertex_count[t]; i++){
             blocks[i].id = i+1;
             for(int j = 0; j < (int) list[t].size(); j++) if(blocks[i].id + previousCount == list[t][j].id){
-                if(list[t][j].op == 'W'){
-                    blocks[i].writtenAttributes.insert(list[t][j].attr);
-                } else if(list[t][j].op == 'R'){
-                    blocks[i].readAttributes.insert(list[t][j].attr);
-                }
                 blocks[i].transac.push_back(list[t][j]);
             }
         }
-        // for(int i = 0; i < blocks.size(); ++i){
-        //     cout << "Bloco de id: " <<blocks[i].id << " com "<< blocks[i].transac.size() << " operacoes" << endl;
-        // }
 
-
+        // check the permutation of the blocks to see if there is a conflict between them
         bool view;
         do {
             view = true;
-            // checar ordem de escrita antes de leitura
-            for(int i = 0; i < vertex_count[t]; i++){
-                for(int j = i+1; j < vertex_count[t]; j++){
-                    int u = blocks[i].id;
-                    int v = blocks[j].id;
-                    if(find(viewGraph[v].begin(), viewGraph[v].end(), u) != viewGraph[v].end()){
-                        view = false;
-                        // cout << "Existe a escrita do bloco " << v << " para " << u << endl;
-                    }
-                }
-            }
+            
+            view = checkReadAndWriteOrder(view, vertex_count, t, blocks, viewGraph);
 
-            // ultima escrita é mantida?
-            map<char, int> viewLastWritten;
-            for(int i = 0; i < vertex_count[t]; i++){
-                for(int j = 0; j < (int) blocks[i].transac.size(); j++){
-                    if(blocks[i].transac[j].op == 'W'){
-                        viewLastWritten[blocks[i].transac[j].attr] = blocks[i].id;
-                    }
-                }
-            }
-            for(auto i = attributes.begin(); i != attributes.end(); i++){
-                // cout << lastWritten[*i] << ' ' << viewLastWritten[*i] << endl;  
-                if(lastWritten[*i] != viewLastWritten[*i]){
-                    view = false;
-                }
-            }
+            view = checkLastWritten(view, vertex_count, t, blocks, attributes, lastWritten);
 
         } while (!view && next_permutation(blocks.begin(), blocks.end(), 
                         [](const auto & lhs, const auto & rhs) 

@@ -1,9 +1,12 @@
+// Vinicius Tikara Venturi Date - GRR20190367
+// Tiago Serique Valadares - GRR20195138
+
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <vector>
 #include <set>
-#include "node.hpp"
+#include "node.h"
 
 using std::vector;
 using std::set;
@@ -22,6 +25,7 @@ void readInput(vector<vector<node_t>> &list,  vector<int> &vertex_count, FILE *a
             activeTransactions.erase(id);
         } else {
             activeTransactions.insert(id);
+            // stores the maximum concurrent number of transactions of this schedule
             if((int)activeTransactions.size() > currentVertexCount)
                 currentVertexCount = activeTransactions.size();
         }
@@ -29,7 +33,8 @@ void readInput(vector<vector<node_t>> &list,  vector<int> &vertex_count, FILE *a
         currentSchedule.push_back({.time = time, .id = id, .op = operation, .attr = attribute});
 
         // after pushing the operation, we check wether the 
-        // schedule has finished or not
+        // schedule has finished or not in order to correctly read
+        // the next one
         if(activeTransactions.empty()){
             list.push_back(currentSchedule);
             vertex_count.push_back(currentVertexCount);

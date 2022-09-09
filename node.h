@@ -1,5 +1,8 @@
-#ifndef __NODE_T_HPP__
-#define __NODE_T_HPP__
+// Vinicius Tikara Venturi Date - GRR20190367
+// Tiago Serique Valadares - GRR20195138
+
+#ifndef __NODE_H__
+#define __NODE_H__
 
 
 struct node_t {
