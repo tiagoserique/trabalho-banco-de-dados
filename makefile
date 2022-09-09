@@ -1,3 +1,6 @@
+# Vinicius Tikara Venturi Date - GRR20190367
+# Tiago Serique Valadares - GRR20195138
+
 CC = g++
 FLAGS = -Wall -g
 objects = main.o utils.o graph.o
